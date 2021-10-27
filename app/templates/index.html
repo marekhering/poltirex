@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+    <ul>
+    {% for truck in trucks %}
+        <li> Truck: {{ truck.id }}
+            <ul>
+                <li> Width: {{ truck.width }} </li>
+                <li> Height: {{ truck.height }}</li>
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}
