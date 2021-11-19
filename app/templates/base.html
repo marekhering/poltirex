@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Trucks</title>
-</head>
-<body>
-    {% block content %}
-    {% endblock %}
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Trucks</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    </head>
+    <body>
+        <section class="hero is-info">
+            <div class="hero-body has-text-centered">
+                <p class = "title" style="font-size:60px;">
+                    Poltirex
+                </p>
+                <p class = "subtitle">
+                    Marek Hering, Maciej Jabłośnki
+                </p>
+            </div>
+        </section>
+        <section class="section has-text-centered">
+            <div>
+                {% block content %}
+                {% endblock %}
+            </div>
+        </section>
+    </body>
 </html>
