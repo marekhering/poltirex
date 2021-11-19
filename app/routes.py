@@ -6,7 +6,7 @@ from .models import Truck
 
 @app.route('/', methods=['GET'])
 def hello_world():
-    return jsonify(hello="world")
+    return render_template('login.html')
 
 
 @app.route('/get-truck/<truck_id>', methods=['GET'])
