@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="column is-4 is-offset-4">
     <h3 style="font-size: xx-large; padding-bottom: 5px;">Logowanie</h3>
     <div class="box">
-        <form method="POST" action="/login">
+        <form method="POST" action="/login-post">
             <div class="field">
                 <input class="input" required="required" type="text" name="login" placeholder="Login" >
             </div>
@@ -15,9 +16,9 @@
         </form>
     </div>
 
-    <h3 style="font-size: x-large; padding-bottom: 5px;">Nie posiadasz konta?</h3>
+    <h3 style="font-size: x-large; padding-bottom: 5px;">Nie posiadasz konta? Zarejestruj się!</h3>
     <div class="box">
-        <form method="POST" action="/register">
+        <form method="POST" action="/register-post">
             <div class="field">
                 <input class="input" required="required" type="text" name="name" placeholder="Imie">
             </div>
@@ -36,7 +37,7 @@
 
             <div class="field">
                 <label class="checkbox">
-                    <input type="checkbox">
+                    <input type="checkbox" required="required">
                     Zapoznałem się z regulaminem
                 </label>
             </div>

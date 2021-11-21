@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_user
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, request, flash, redirect, url_for
+from flask_login import login_user, login_required, logout_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.models import User
 from app import db
@@ -8,33 +8,53 @@ from app import db
 auth = Blueprint('auth', __name__)
 
 
-@auth.route('/')
-def login():
-    return render_template('login.html')
+@auth.route('/login-post', methods=['POST'])
+def login_post():
+    login = request.form.get('login')
+    password = request.form.get('password')
+
+    user = User.query.filter_by(login=login).first()
+
+    if not user:
+        flash('Brak użytkownika o loginie %s' % login)
+        return redirect(url_for('main.index'))
+
+    if not check_password_hash(user.password, password):
+        flash('Błędne hasło')
+        return redirect(url_for('main.index'))
+
+    login_user(user)
+    return redirect(url_for('main.profile'))
 
 
-@auth.route('/register', methods=['POST'])
+@auth.route('/register-post', methods=['POST'])
 def register_post():
     name = request.form.get('name')
     surname = request.form.get('surname')
-    user_login = request.form.get('login')
+    login = request.form.get('login')
     password = request.form.get('password')
     confirm_password = request.form.get('confirm_password')
 
     if password != confirm_password:
         flash('Podane hasła się różnią')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('main.index'))
 
-    print(User.query.filter_by(login=user_login).first())
-    if User.query.filter_by(login=user_login).first():
-        flash("Istnieje już użytkownik o nicku %s" % user_login)
-        return redirect(url_for('auth.login'))
+    if User.query.filter_by(login=login).first():
+        flash("Istnieje już użytkownik o nicku %s" % login)
+        return redirect(url_for('main.index'))
 
     password_hash = generate_password_hash(password, method='sha256')
-    user = User(name=name, surname=surname, login=user_login, password=password_hash)
+    user = User(name=name, surname=surname, login=login, password=password_hash)
     db.session.add(user)
     db.session.commit()
 
     login_user(user)
 
     return redirect(url_for('main.profile'))
+
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main.login'))

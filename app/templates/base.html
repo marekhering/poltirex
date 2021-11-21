@@ -4,24 +4,40 @@
         <meta charset="UTF-8">
         <title>Poltirex</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
         <section class="hero is-info">
-            <div class="hero-body has-text-centered">
-                <p class = "title" style="font-size:60px;">
+            <div class="hero-body has-text-centered" style=" padding-bottom: 10px;">
+                <p class = "title" style="font-size:xxx-large;">
                     Poltirex
                 </p>
                 <p class = "subtitle">
                     Marek Hering, Maciej Jabłośnki
                 </p>
             </div>
-        </section>
 
+            <div class="level-right" style="padding-right: 30px; padding-bottom: 5px; font-size: large">
+                &nbsp;
+                {% if current_user.is_authenticated %}
+                <span class="icon-text" style="padding-right: 5px">
+                    <span class="icon">
+                        <i class="fas fa fa-user"></i>
+                    </span>
+                    <span>Witaj, {{ name }}!</span>
+                </span>
+                <form action="/logout">
+                    <button class="button is-info" type="submit" style="font-size: large">Wyloguj</button>
+                </form>
+                {% endif %}
+             </div>
+
+        </section>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-            <div class="notification is-danger has-text-centered">
-                {{ messages[0] }}
-            </div>
+        <div class="notification is-danger has-text-centered">
+            {{ messages[0] }}
+        </div>
         {% endif %}
         {% endwith %}
 
