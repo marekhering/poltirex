@@ -2,7 +2,7 @@ from flask import Blueprint, request, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.models import User
+from app.models import Client, User
 from app import db
 
 auth = Blueprint('auth', __name__)
@@ -24,7 +24,7 @@ def login_post():
         return redirect(url_for('main.index'))
 
     login_user(user)
-    return redirect(url_for('main.profile'))
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/register-post', methods=['POST'])
@@ -44,17 +44,16 @@ def register_post():
         return redirect(url_for('main.index'))
 
     password_hash = generate_password_hash(password, method='sha256')
-    user = User(name=name, surname=surname, login=login, password=password_hash)
-    db.session.add(user)
+    client = Client(name=name, surname=surname, login=login, password=password_hash)
+    db.session.add(client)
     db.session.commit()
+    login_user(client)
 
-    login_user(user)
-
-    return redirect(url_for('main.profile'))
+    return redirect(url_for('main.index'))
 
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.login'))
+    return redirect(url_for('main.index'))

@@ -2,4 +2,7 @@ from .user import User
 
 
 class Driver(User):
-    __tablename__ = "driver"
+    __tablename__ = None
+    __mapper_args__ = {
+        'polymorphic_identity': 'driver'
+    }

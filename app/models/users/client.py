@@ -3,6 +3,10 @@ from .user import User
 
 
 class Client(User):
-    __tablename__ = "client"
-    language = db.Column(db.String(2), default="EN")
-    order = db.relationship("Order", lazy='joined')
+    __tablename__ = None
+    language = db.Column(db.String(2), default="PL")
+    # order = db.relationship("Order", lazy='joined')
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'client'
+    }
