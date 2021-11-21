@@ -1,6 +1,6 @@
 ### DO WPROWADZANIA ZMIAN W KONTENERZE:
 ```
-docker-compose -d --build
+docker-compose build
 docker-compose up
 ```
 

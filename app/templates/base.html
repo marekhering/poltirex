@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Trucks</title>
+        <title>Poltirex</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
     </head>
     <body>
@@ -16,6 +16,15 @@
                 </p>
             </div>
         </section>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger has-text-centered">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+
         <section class="section has-text-centered">
             <div>
                 {% block content %}
