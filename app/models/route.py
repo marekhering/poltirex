@@ -1,13 +1,14 @@
 from app import db
+from app.utils import Jsonified
 
 
-class Route(db.Model):
+class Route(db.Model, Jsonified):
     __tablename__ = "route"
 
     id = db.Column(db.Integer, primary_key=True)
     start_datetime = db.Column(db.TIMESTAMP, nullable=False)
     end_datetime = db.Column(db.TIMESTAMP, nullable=False)
 
-    order = db.Column(db.Integer, db.ForeignKey('order.id'))
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
 
     stretch = db.relationship("Stretch")

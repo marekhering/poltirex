@@ -1,7 +1,8 @@
 from app import db
+from app.utils import Jsonified
 
 
-class Order(db.Model):
+class Order(db.Model, Jsonified):
     __tablename__ = "order"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -14,4 +15,4 @@ class Order(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    route = db.relationship("Route")
+    route = db.relationship("Route", uselist=False)
