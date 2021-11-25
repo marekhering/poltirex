@@ -9,6 +9,6 @@ class Truck(db.Model, Jsonified):
     height = db.Column(db.Float, nullable=False)
     width = db.Column(db.Float, nullable=False)
 
-    # def __init__(self, height: float, width: float):
-    #     self.height = height
-    #     self.width = width
+    driver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    stretch = db.relationship("Stretch")
