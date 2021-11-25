@@ -1,7 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Stwórz zlecenie
-</h1>
+<div class="column is-4 is-offset-4">
+    <h1 style="font-size: xx-large; padding-bottom: 5px;">Stwórz zlecenie</h1>
+    <div class="box">
+        <form method="POST" action="/order-post">
+            <div class="field">
+                 <p style="font-size: large">Data dostarczenia towaru (yyyy-mm-dd hh:mm)</p>
+                <input class="input" required="required" type="text" name="delivery_time" placeholder="Data dostarczenia towaru (yyyy-mm-dd hh:mm)" >
+            </div>
+            <div class="field column">
+                <p style="font-size: large">Punkt startowy:</p>
+                <input class="input" style="width: 45%;" required="required" type="text" name="depart_lat" placeholder="Szerokość geograficzna" >
+                <input class="input" style="width: 45%;" required="required" type="text" name="depart_lon" placeholder="Długość geograficzna" >
+            </div>
+            <div class="field column">
+                <p style="font-size: large">Punkt końcowy:</p>
+                <input class="input" style="width: 45%;" required="required" type="text" name="dest_lat" placeholder="Szerokość geograficzna">
+                <input class="input" style="width: 45%;" required="required" type="text" name="dest_lon" placeholder="Długość geograficzna">
+            </div>
+            <div class="field">
+                 <p style="font-size: large">Waga towaru [kg]:</p>
+                <input class="input" required="required" type="text" name="weight" placeholder="Waga towaru [kg]">
+            </div>
+            <button class="button is-block is-info is-large is-fullwidth">Stwórz zlecenie</button>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
