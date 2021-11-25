@@ -16,11 +16,11 @@ def login_post():
     user = User.query.filter_by(login=login).first()
 
     if not user:
-        flash('Brak użytkownika o loginie %s' % login)
+        flash('Brak użytkownika o loginie %s' % login, category='error')
         return redirect(url_for('main.index'))
 
     if not check_password_hash(user.password, password):
-        flash('Błędne hasło')
+        flash('Błędne hasło', category='error')
         return redirect(url_for('main.index'))
 
     login_user(user)
@@ -36,11 +36,11 @@ def register_post():
     confirm_password = request.form.get('confirm_password')
 
     if password != confirm_password:
-        flash('Podane hasła się różnią')
+        flash('Podane hasła się różnią', category='error')
         return redirect(url_for('main.index'))
 
     if User.query.filter_by(login=login).first():
-        flash("Istnieje już użytkownik o nicku %s" % login)
+        flash("Istnieje już użytkownik o nicku %s" % login, category='error')
         return redirect(url_for('main.index'))
 
     password_hash = generate_password_hash(password, method='sha256')
