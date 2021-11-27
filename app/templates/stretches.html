@@ -1,7 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Przypisane do ciebie odcinki
-</h1>
+<div class="container">
+    <h1 class="title">Przypisane do ciebie odcinki</h1>
+    <table class="table is-striped">
+        <tbody>
+            <tr>
+                <th>Data rozpoczęcia </th>
+                <th>Data zakończenia </th>
+                <th>Miejsce początkowe [lat]: </th>
+                <th>Miejsce początkowe [lon]: </th>
+                <th>Miejsce końcowe [lat]: </th>
+                <th>Miejsce końcowe [lon]: </th>
+                <th>Imie klienta </th>
+                <th>Nazwisko klienta </th>
+            </tr>
+            {% for stretch in stretches %}
+            <tr>
+                  {% for elem in stretch %}
+                      <td> {{ elem }} </td>
+                  {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
 {% endblock %}

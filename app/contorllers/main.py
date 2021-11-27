@@ -4,8 +4,8 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from app import db
-from app.models import *
-from app.utils.help import dist_calc
+from app.models import Client, Driver, Truck, Order, Stretch, Route
+from app.utils import set_connection
 
 main = Blueprint('main', __name__)
 
@@ -37,8 +37,29 @@ def order():
 @main.route('/stretches')
 @login_required
 def stretches():
-    return render_template('stretches.html', name=current_user.name)
+    return render_template('stretches.html', name=current_user.name, stretches=get_stretches())
 
+
+def get_stretches(using_orm: bool = True):
+    if using_orm is True:
+        result = db.session.query(Stretch.start_datetime, Stretch.end_datetime, Stretch.start_place_lat,
+                                  Stretch.start_place_lon, Stretch.end_place_lat, Stretch.end_place_lat, Client.name,
+                                  Client.surname).select_from(Truck).join(Stretch).join(Route).join(Order).join(Client).\
+            filter(Truck.driver_id == current_user.id).order_by(Stretch.start_datetime).all()
+    else:
+        connection = set_connection()
+        cursor = connection.cursor()
+        result = cursor.execute("""
+        SELECT u.name, u.surname, u.date_of_birth, sm.value FROM truck t
+        JOIN stretch s ON s.truck_id = t.id
+        JOIN route r ON s.route_id = r.id
+        JOIN order o ON r.order_id = o.id
+        JOIN user u ON o.user_id = u.id 
+        WHERE t.driver_id = '%s'
+        ORDER BY s.start_datetime DESC
+        LIMIT 10
+        """ % current_user.id)
+    return result
 
 @main.route('/order-post', methods=['POST'])
 @login_required
