@@ -3,6 +3,10 @@ import psycopg2
 import os
 
 
+def set_cursor():
+    return set_connection().cursor()
+
+
 def set_connection():
     result = urlparse(os.getenv("DATABASE_URL"))
     username = result.username
@@ -10,8 +14,6 @@ def set_connection():
     database = result.path[1:]
     hostname = result.hostname
     port = result.port
-
-    print(result, database, port, hostname, username, password)
 
     return psycopg2.connect(
         user=username,

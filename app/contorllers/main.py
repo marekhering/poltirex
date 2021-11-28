@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
+import time
 
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 
 from app import db
 from app.models import Client, Driver, Truck, Order, Stretch, Route
-from app.utils import set_connection
+from app.utils import set_cursor, set_connection
 from app.logistic import execute_order
 
 main = Blueprint('main', __name__)
@@ -38,34 +39,52 @@ def order():
 @main.route('/stretches')
 @login_required
 def stretches():
-    return render_template('stretches.html', name=current_user.name, stretches=get_stretches())
+    return render_template('stretches.html', name=current_user.name, stretches=get_stretches(current_user.id))
 
 
-def get_stretches(using_orm: bool = True):
+@main.route('/test-stretches/<no_test>/<user_id>')
+def test_stretches(no_test: int, user_id: int):
+    def perform_test(using_orm: bool):
+        t0 = time.time()
+        for _ in range(int(no_test)):
+            get_stretches(int(user_id), using_orm=using_orm)
+        return time.time() - t0
+
+    return jsonify({
+        'mean_time_using_orm': perform_test(True),
+        'mean_time_using_sql': perform_test(False)
+    })
+
+
+def get_stretches(user_id: int, using_orm: bool = False):
     if using_orm is True:
         result = db.session.query(Stretch.start_datetime, Stretch.end_datetime, Stretch.start_place_lat,
                                   Stretch.start_place_lon, Stretch.end_place_lat, Stretch.end_place_lat, Client.name,
                                   Client.surname).select_from(Truck).join(Stretch).join(Route).join(Order).join(Client).\
-            filter(Truck.driver_id == current_user.id).order_by(Stretch.start_datetime).all()
+            filter(Truck.driver_id == user_id).order_by(Stretch.start_datetime).all()
     else:
-        connection = set_connection()
-        cursor = connection.cursor()
-        result = cursor.execute("""
-        SELECT u.name, u.surname, u.date_of_birth, sm.value FROM truck t
+
+        cursor = set_cursor()
+        cursor.execute("""
+        SELECT s.start_datetime, s.end_datetime, s.start_place_lat, s.start_place_lon, s.end_place_lat, s.end_place_lat, 
+        u.name, u.surname
+        FROM truck t
         JOIN stretch s ON s.truck_id = t.id
         JOIN route r ON s.route_id = r.id
-        JOIN order o ON r.order_id = o.id
-        JOIN user u ON o.user_id = u.id 
+        JOIN "order" o ON r.order_id = o.id
+        JOIN "user" u ON o.user_id = u.id
         WHERE t.driver_id = '%s'
-        ORDER BY s.start_datetime DESC
-        LIMIT 10
-        """ % current_user.id)
+        ORDER BY s.start_datetime
+        """ % user_id)
+
+        result = cursor.fetchall()
     return result
+
 
 @main.route('/order-post', methods=['POST'])
 @login_required
 def order_post():
-    result = insert_new_order()
+    result = insert_new_order_form(current_user.id)
     if result is True:
         flash("Order created", category='success')
         return render_template('order.html', name=current_user.name)
@@ -74,15 +93,50 @@ def order_post():
         return render_template('order.html', name=current_user.name)
 
 
-def insert_new_order(using_orm: bool = True) -> bool:
+@main.route('/test-order/<no_test>/<user_id>')
+def test_oder(no_test: int, user_id: int):
+    test_order_dict = {
+        'delivery_time': datetime.strptime("2030-01-01 12:00", "%Y-%m-%d %H:%M"),
+        'depart_lat': 50,
+        'depart_lon': 20,
+        'dest_lat': 51,
+        'dest_lon': 21,
+        'weight': 100,
+    }
+
+    def perform_test(using_orm: bool):
+        t0 = time.time()
+        for _ in range(int(no_test)):
+            test_order_dict['delivery_time'] += timedelta(days=1)
+            insert_new_order(test_order_dict, int(user_id), using_orm=using_orm)
+        return time.time() - t0
+
+    return jsonify({
+        'mean_time_using_orm': perform_test(True),
+        'mean_time_using_sql': perform_test(False)
+    })
+
+
+def insert_new_order_form(user_id: int) -> bool:
+    return insert_new_order({
+        'delivery_time': datetime.strptime(request.form.get('delivery_time'), "%Y-%m-%d %H:%M"),
+        'depart_lat': float(request.form.get('depart_lat')),
+        'depart_lon': float(request.form.get('depart_lon')),
+        'dest_lat': float(request.form.get('dest_lat')),
+        'dest_lon': float(request.form.get('dest_lon')),
+        'weight': request.form.get('weight'),
+    }, user_id, using_orm=True)
+
+
+def insert_new_order(order_dict: dict, user_id: int, using_orm: bool = True) -> bool:
     new_order = Order(
-        delivery_time=datetime.strptime(request.form.get('delivery_time'), "%Y-%m-%d %H:%M"),
-        departure_place_lat=float(request.form.get('depart_lat')),
-        departure_place_lon=float(request.form.get('depart_lon')),
-        destination_place_lat=float(request.form.get('dest_lat')),
-        destination_place_lon=float(request.form.get('dest_lon')),
-        payload_weight=request.form.get('weight'),
-        user_id=current_user.id
+        delivery_time=order_dict['delivery_time'],
+        departure_place_lat=order_dict['depart_lat'],
+        departure_place_lon=order_dict['depart_lon'],
+        destination_place_lat=order_dict['dest_lat'],
+        destination_place_lon=order_dict['dest_lon'],
+        payload_weight=order_dict['weight'],
+        user_id=user_id
     )
 
     executed_order = execute_order(new_order)
@@ -97,6 +151,40 @@ def insert_new_order(using_orm: bool = True) -> bool:
     stretch_1_truck.stretch.append(new_stretch_1)
     stretch_2_truck.stretch.append(new_stretch_2)
 
-    db.session.add_all([new_stretch_1, new_stretch_2, new_route, new_order])
-    db.session.commit()
+    if using_orm:
+        db.session.add_all([new_stretch_1, new_stretch_2, new_route, new_order])
+        db.session.commit()
+    else:
+        connection = set_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            INSERT INTO "order" (delivery_time, departure_place_lat, departure_place_lon, destination_place_lat, 
+            destination_place_lon, payload_weight, user_id) 
+            VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') RETURNING id
+            """ % (new_order.delivery_time, new_order.departure_place_lat, new_order.departure_place_lon,
+                   new_order.destination_place_lat, new_order.destination_place_lon,
+                   new_order.payload_weight, new_order.user_id))
+        new_order_id = cursor.fetchone()[0]
+
+        cursor.execute("""
+            INSERT INTO route (start_datetime, end_datetime, order_id) 
+            VALUES ('%s', '%s', '%s') RETURNING id
+            """ % (new_route.start_datetime, new_route.end_datetime, new_order_id))
+        new_route_id = cursor.fetchone()[0]
+
+        cursor.execute("""
+            INSERT INTO stretch (start_datetime, end_datetime, start_place_lon, start_place_lat, end_place_lon, 
+            end_place_lat, route_id, truck_id)
+            VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'),
+                   ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+            """ % (new_stretch_1.start_datetime, new_stretch_1.end_datetime, new_stretch_1.start_place_lat,
+                   new_stretch_1.start_place_lon, new_stretch_1.end_place_lat, new_stretch_1.end_place_lon,
+                   new_route_id, new_stretch_1.truck_id,
+                   new_stretch_2.start_datetime, new_stretch_2.end_datetime, new_stretch_2.start_place_lat,
+                   new_stretch_2.start_place_lon, new_stretch_2.end_place_lat, new_stretch_2.end_place_lon,
+                   new_route_id, new_stretch_2.truck_id,
+                   ))
+
+        connection.commit()
     return True
