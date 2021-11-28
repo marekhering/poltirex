@@ -11,4 +11,5 @@ class Route(db.Model, Jsonified):
 
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
 
-    stretch = db.relationship("Stretch")
+    stretch = db.relationship("Stretch", back_populates='route')
+    order = db.relationship("Order", lazy='select', back_populates="route", uselist=False)

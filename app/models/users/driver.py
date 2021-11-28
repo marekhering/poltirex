@@ -8,4 +8,4 @@ class Driver(User):
         'polymorphic_identity': 'driver'
     }
 
-    order = db.relationship("Truck")
+    truck = db.relationship("Truck", lazy='select', back_populates='driver', uselist=False)

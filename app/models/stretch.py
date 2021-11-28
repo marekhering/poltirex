@@ -15,3 +15,6 @@ class Stretch(db.Model, Jsonified):
 
     route_id = db.Column(db.Integer, db.ForeignKey('route.id'))
     truck_id = db.Column(db.Integer, db.ForeignKey('truck.id'))
+
+    route = db.relationship("Route", lazy='select', back_populates='stretch')
+    truck = db.relationship("Truck", lazy='select', back_populates='stretch')

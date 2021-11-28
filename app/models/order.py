@@ -15,4 +15,5 @@ class Order(db.Model, Jsonified):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    route = db.relationship("Route", uselist=False)
+    client = db.relationship("Client", lazy='select', back_populates="order", uselist=False)
+    route = db.relationship("Route", lazy='select', back_populates="order", uselist=False)

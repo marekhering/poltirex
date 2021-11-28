@@ -14,7 +14,10 @@ class Truck(db.Model, Jsonified):
     position_lon = db.Column(db.Float, nullable=False)
 
     driver_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    stretch = db.relationship("Stretch")
+
+    driver = db.relationship("Driver", lazy='select', back_populates='truck', uselist=False)
+    stretch = db.relationship("Stretch", lazy='select', back_populates='truck')
+
     def is_available(self, start_time, end_time):
         for stretch in self.stretch:
             if stretch.start_datetime < end_time and stretch.end_datetime > start_time:

@@ -9,4 +9,4 @@ class Client(User):
     }
 
     language = db.Column(db.String(2), default="PL")
-    order = db.relationship("Order")
+    order = db.relationship("Order", lazy='select', back_populates="client")
